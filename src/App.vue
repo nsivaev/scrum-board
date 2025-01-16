@@ -5,8 +5,9 @@ import {RouterLink, RouterView} from 'vue-router'
 <template>
   <header>
     <nav>
-      <RouterLink to="/">Home</RouterLink>
-      <RouterLink to="/login">Login</RouterLink>
+      <RouterLink to="/">🏠 Домой</RouterLink>
+      |
+      <RouterLink to="/login">🔐 Логин</RouterLink>
     </nav>
   </header>
 
@@ -20,7 +21,8 @@ header {
 
 nav {
   display: flex;
-  justify-content: center;
+  justify-content: right;
+  align-items: center;
   gap: 10px;
 }
 </style>
