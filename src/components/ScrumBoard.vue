@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="scrum-board">
     <div class="tasks__list">
       <h2>📋 Добавить задачу</h2>
       <input v-model="newTitle" placeholder="Название задачи"/>
@@ -27,7 +27,7 @@
           {{ task.title }} - {{ task.description }}
           <div class="tasks__buttons">
             <button @click="moveTask(task.id, 'done')">✅ Завершить</button>
-            <button @click="moveTask(task.id, 'todo')">⬆️ Вернуть</button>
+            <button @click="moveTask(task.id, 'todo')">⬅️ Вернуть</button>
             <button @click="removeTask(task.id)">❌ Удалить</button>
           </div>
         </li>
@@ -40,7 +40,7 @@
         <li v-for="task in doneTasks" :key="task.id">
           {{ task.title }} - {{ task.description }}
           <div class="tasks__buttons">
-            <button @click="moveTask(task.id, 'in-progress')">⬆️ Вернуть</button>
+            <button @click="moveTask(task.id, 'in-progress')">⬅️ Вернуть</button>
             <button @click="removeTask(task.id)">❌ Удалить</button>
           </div>
         </li>
@@ -132,7 +132,16 @@ ul {
 li {
   display: flex;
   flex-direction: column;
+  border: 2px solid #b2b2b2;
+  padding: 10px;
+  border-radius: 10px;
   gap: 10px;
+}
+
+.scrum-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-column-gap: 40px;
 }
 
 .tasks__list,.tasks__todos,.tasks__in-progress,.tasks__done {
