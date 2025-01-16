@@ -1,57 +1,7 @@
-<template>
-  <div class="scrum-board">
-    <div class="tasks__list">
-      <h2>📋 Добавить задачу</h2>
-      <input v-model="newTitle" placeholder="Название задачи"/>
-      <input v-model="newDescription" placeholder="Описание задачи"/>
-      <button @click="addNewTask">✏️ Добавить задачу</button>
-    </div>
-
-    <div class="tasks__todos">
-      <h2>🕒 Нужно сделать</h2>
-      <ul>
-        <li v-for="task in todoTasks" :key="task.id">
-          {{ task.title }} — {{ task.description }}
-          <div class="tasks__buttons">
-            <button @click="moveTask(task.id, 'in-progress')">➡️ В работу</button>
-            <button @click="removeTask(task.id)">❌ Удалить</button>
-          </div>
-        </li>
-      </ul>
-    </div>
-
-    <div class="tasks__in-progress">
-      <h2>🚧 В процессе</h2>
-      <ul>
-        <li v-for="task in inProgressTasks" :key="task.id">
-          {{ task.title }} - {{ task.description }}
-          <div class="tasks__buttons">
-            <button @click="moveTask(task.id, 'done')">✅ Завершить</button>
-            <button @click="moveTask(task.id, 'todo')">⬅️ Вернуть</button>
-            <button @click="removeTask(task.id)">❌ Удалить</button>
-          </div>
-        </li>
-      </ul>
-    </div>
-
-    <div class="tasks__done">
-      <h2>✅ Готово</h2>
-      <ul>
-        <li v-for="task in doneTasks" :key="task.id">
-          {{ task.title }} - {{ task.description }}
-          <div class="tasks__buttons">
-            <button @click="moveTask(task.id, 'in-progress')">⬅️ Вернуть</button>
-            <button @click="removeTask(task.id)">❌ Удалить</button>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import {ref, computed} from "vue";
 import {useTaskStore} from "@/stores";
+import Draggable from "vuedraggable";
 
 const taskStore = useTaskStore();
 
@@ -70,22 +20,98 @@ const moveTask = (id: number, status: 'todo' | 'in-progress' | 'done') => {
   taskStore.updateTaskStatus(id, status);
 };
 
-const todoTasks = computed(() =>
-  taskStore.tasks.filter((task) => task.status === 'todo')
-);
-
-const inProgressTasks = computed(() =>
-  taskStore.tasks.filter((task) => task.status === 'in-progress')
-);
-
-const doneTasks = computed(() =>
-  taskStore.tasks.filter((task) => task.status === 'done')
-);
+const todoTasks = computed(() => taskStore.tasks.filter((task) => task.status === 'todo'));
+const inProgressTasks = computed(() => taskStore.tasks.filter((task) => task.status === 'in-progress'));
+const doneTasks = computed(() => taskStore.tasks.filter((task) => task.status === 'done'));
 
 const removeTask = (id: number) => {
   taskStore.removeTask(id);
 };
+
+const onDrop = (event: any, newStatus: "todo" | "in-progress" | "done") => {
+  if (event.moved || event.added) {
+    const task = event.moved ? event.moved.element : event.added.element;
+    if (task) {
+      taskStore.updateTaskStatus(task.id, newStatus);
+    }
+  }
+};
 </script>
+
+<template>
+  <div class="scrum-board">
+    <div class="tasks__list">
+      <h2>📋 Добавить задачу</h2>
+      <input v-model="newTitle" placeholder="Название задачи"/>
+      <input v-model="newDescription" placeholder="Описание задачи"/>
+      <button @click="addNewTask">✏️ Добавить задачу</button>
+    </div>
+    <div class="tasks__todos">
+      <h2>🕒 Нужно сделать</h2>
+      <Draggable
+        :list="todoTasks"
+        :animation="300"
+        group="tasks"
+        item-key="id"
+        @change="onDrop($event, 'todo')"
+        class="tasks__items"
+      >
+        <template #item="{ element }">
+          <li>
+            {{ element.title }} — {{ element.description }}
+            <div class="tasks__buttons">
+              <button @click="moveTask(element.id, 'in-progress')">➡️ В работу</button>
+              <button @click="removeTask(element.id)">❌ Удалить</button>
+            </div>
+          </li>
+        </template>
+      </Draggable>
+    </div>
+    <div class="tasks__in-progress">
+      <h2>🚧 В процессе</h2>
+      <Draggable
+        :list="inProgressTasks"
+        :animation="300"
+        group="tasks"
+        item-key="id"
+        @change="onDrop($event, 'in-progress')"
+        class="tasks__items"
+      >
+        <template #item="{ element }">
+          <li>
+            {{ element.title }} - {{ element.description }}
+            <div class="tasks__buttons">
+              <button @click="moveTask(element.id, 'done')">✅ Готово</button>
+              <button @click="moveTask(element.id, 'todo')">⬅️ Вернуть</button>
+              <button @click="removeTask(element.id)">❌ Удалить</button>
+            </div>
+          </li>
+        </template>
+      </Draggable>
+    </div>
+    <div class="tasks__done">
+      <h2>✅ Готово</h2>
+      <Draggable
+        :list="doneTasks"
+        :animation="300"
+        group="tasks"
+        item-key="id"
+        @change="onDrop($event, 'done')"
+        class="tasks__items"
+      >
+        <template #item="{ element }">
+          <li>
+            {{ element.title }} - {{ element.description }}
+            <div class="tasks__buttons">
+              <button @click="moveTask(element.id, 'in-progress')">⬅️ Вернуть</button>
+              <button @click="removeTask(element.id)">❌ Удалить</button>
+            </div>
+          </li>
+        </template>
+      </Draggable>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 input {
@@ -123,7 +149,7 @@ button {
   }
 }
 
-ul {
+.tasks__items {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -144,7 +170,7 @@ li {
   grid-column-gap: 40px;
 }
 
-.tasks__list,.tasks__todos,.tasks__in-progress,.tasks__done {
+.tasks__list, .tasks__todos, .tasks__in-progress, .tasks__done {
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
